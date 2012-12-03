@@ -1,9 +1,12 @@
 package mware_lib;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.Socket;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
 
 /**
  * @author Benjamin Trapp
@@ -20,6 +23,9 @@ public class SkeletonDaemon implements Runnable {
 	 * ConcurrentHashMap to represent the object list
 	 */
 	private ConcurrentHashMap<String, Object> objectList;
+	
+	private Logger logger;
+	
 	/**
 	 * Constructor of the skeleton daemon
 	 * @param socket socket that is needed for the communication
@@ -27,9 +33,21 @@ public class SkeletonDaemon implements Runnable {
 	 */
 	public SkeletonDaemon(Socket socket, ConcurrentHashMap<String, Object> objectList) 
 	{
-		System.out.println("SkeletonDaemon is up and running");
+		//System.out.println("SkeletonDaemon is up and running");
 		this.objectList = objectList;
 		this.skeletonDaemonCom = new Communication(socket);
+		 FileHandler hand;
+			try {
+				hand = new FileHandler("SkeletonDaemon"+this.toString()+".log");
+				logger = Logger.getLogger("SkeletonDaemon"+this.toString()+"_Logger");
+				logger.addHandler(hand);
+			} catch (SecurityException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 	}
 	
 	/**
@@ -59,6 +77,7 @@ public class SkeletonDaemon implements Runnable {
 			String name = unmarshalled[1];
 			String param = unmarshalled[2];
 			String paramTyp = unmarshalled[3];
+			logger.info("[Recieved] Methodname: "+methodName+" Name: "+name+" Param: "+param+" ParamTyp: "+paramTyp);
 			Class<?> parameterTypes [] = {String.class};
 			
 			System.out.println("-----------------------------");
@@ -87,7 +106,7 @@ public class SkeletonDaemon implements Runnable {
 				{
 					parameterTypes[0] = String.class;
 				}
-				
+				//logger.info("Parameter Class:"+parameterTypes[0]);
 				try {
 					
 					Method method = object.getClass().getMethod(methodName, parameterTypes);
@@ -132,9 +151,11 @@ public class SkeletonDaemon implements Runnable {
 				} catch (IllegalAccessException e) {
 					e.printStackTrace();
 				} catch (InvocationTargetException e) { // Catch the Exception that may be thrown by a real method-invoke call 
+					logger.severe("InvocationTargetException was thrown by a real method-invoke call");
 					skeletonDaemonCom.send("ERROR|" + e.getCause().getMessage());
 				}
 			}else {
+				logger.severe("Object "+name+" was not in the list");
 				skeletonDaemonCom.send("ERROR|" + "Invalid key in object list");
 			}
 		}

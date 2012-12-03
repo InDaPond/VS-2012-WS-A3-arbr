@@ -1,5 +1,9 @@
 package mware_lib;
 
+import java.io.IOException;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
+
 /**
  * @author Benjamin Trapp
  * 		   Christoph Gr�bke
@@ -19,6 +23,8 @@ public class ObjectBroker
 	 */
 	private int listenPort;
 	
+	private Logger logger;
+	
 	/**
 	 * Implemented as singleton, because there should be only one instance
 	 * of the ObjectBroker.
@@ -37,6 +43,18 @@ public class ObjectBroker
     {
         this.serviceHost = serviceHost;
         this.listenPort = listenPort;
+        FileHandler hand;
+		try {
+			hand = new FileHandler("ObjectBroker.log");
+			logger = Logger.getLogger("ObjectBroker_Logger");
+			logger.addHandler(hand);
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 
     /**
@@ -47,8 +65,12 @@ public class ObjectBroker
      */
     public static ObjectBroker getBroker(String serviceHost, int listenPort)
     {
-    	System.out.println("@get Instance ObjectBroker");
-        return (instance == null) ? instance = new ObjectBroker(serviceHost, listenPort) : instance;
+    	//System.out.println("@get Instance ObjectBroker");
+    	if(instance == null){
+    		instance = new ObjectBroker(serviceHost, listenPort);
+    	}
+    	instance.logger.info("@get Instance ObjectBroker");
+        return instance;
     }
 
     /**
