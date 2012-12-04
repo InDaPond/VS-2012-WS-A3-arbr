@@ -27,12 +27,14 @@ public abstract class ACom
      */
     protected OutputStream outStream = null;
     
+    private Socket socket;
     /**
      * Constructor of the Communication class
      * @param socket Socket to handle the communication
      */
 	public ACom(Socket socket) 
 	{
+		this.socket = socket;
 		try 
 		{
 			inStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -68,7 +70,5 @@ public abstract class ACom
     {
         inStream.close();
         outStream.close();
-    }
-    
-    
+    } 
 }

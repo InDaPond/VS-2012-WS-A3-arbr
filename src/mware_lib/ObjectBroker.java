@@ -1,12 +1,8 @@
 package mware_lib;
 
-import java.io.IOException;
-import java.util.logging.FileHandler;
-import java.util.logging.Logger;
-
 /**
  * @author Benjamin Trapp
- * 		   Christoph Grï¿½bke
+ * 		   Christoph Gröbke
  */
 public class ObjectBroker
 {
@@ -23,14 +19,12 @@ public class ObjectBroker
 	 */
 	private int listenPort;
 	
-	private Logger logger;
-	
 	/**
 	 * Implemented as singleton, because there should be only one instance
 	 * of the ObjectBroker.
 	 * 
 	 * Original-Description:
-	 *    // Das hier zurï¿½ckgelieferte Objekt soll der zentrale Einstiegspunkt 
+	 *    // Das hier zurückgelieferte Objekt soll der zentrale Einstiegspunkt 
      *    // der Middleware aus Anwendersicht sein.
      *    // Parameter: Host und Port, bei dem die Dienste (Namensdienst)
      *    //            kontaktiert werden sollen.
@@ -43,18 +37,6 @@ public class ObjectBroker
     {
         this.serviceHost = serviceHost;
         this.listenPort = listenPort;
-        FileHandler hand;
-		try {
-			hand = new FileHandler("ObjectBroker.log");
-			logger = Logger.getLogger("ObjectBroker_Logger");
-			logger.addHandler(hand);
-		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
     }
 
     /**
@@ -65,12 +47,9 @@ public class ObjectBroker
      */
     public static ObjectBroker getBroker(String serviceHost, int listenPort)
     {
-    	//System.out.println("@get Instance ObjectBroker");
-    	if(instance == null){
-    		instance = new ObjectBroker(serviceHost, listenPort);
-    	}
-    	instance.logger.info("@get Instance ObjectBroker");
-        return instance;
+    	System.out.println("@get Instance ObjectBroker");
+        // 'Ere we go again, oppan gangnam-brainfuck style
+        return (instance == null) ? instance = new ObjectBroker(serviceHost, listenPort) : instance;
     }
 
     /**

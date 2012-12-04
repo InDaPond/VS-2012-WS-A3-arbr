@@ -1,147 +1,134 @@
 package mware_lib;
 
-import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.Socket;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.FileHandler;
-import java.util.logging.Logger;
+
+import cash_access.OverdraftException;
 
 /**
- * @author Benjamin Trapp
- * 		   Christoph Gröbke
+ * @author Benjamin Trapp Christoph Gröbke
  */
 public class SkeletonDaemon implements Runnable {
 
-    /**
-     * Variable needed to set up the communication between the distributed 
-     * software
-     */
+	/**
+	 * Variable needed to set up the communication between the distributed
+	 * software
+	 */
 	private Communication skeletonDaemonCom;
 	/**
 	 * ConcurrentHashMap to represent the object list
 	 */
 	private ConcurrentHashMap<String, Object> objectList;
-	
-	private Logger logger;
-	
+
 	/**
 	 * Constructor of the skeleton daemon
-	 * @param socket socket that is needed for the communication
-	 * @param objectList lists from the nameservice with all known objects
+	 * 
+	 * @param socket
+	 *            socket that is needed for the communication
+	 * @param objectList
+	 *            lists from the nameservice with all known objects
 	 */
-	public SkeletonDaemon(Socket socket, ConcurrentHashMap<String, Object> objectList) 
-	{
-		//System.out.println("SkeletonDaemon is up and running");
+	public SkeletonDaemon(Socket socket,
+			ConcurrentHashMap<String, Object> objectList) {
+		System.out.println("SkeletonDaemon is up and running");
 		this.objectList = objectList;
 		this.skeletonDaemonCom = new Communication(socket);
-		 FileHandler hand;
-			try {
-				hand = new FileHandler("SkeletonDaemon"+this.toString()+".log");
-				logger = Logger.getLogger("SkeletonDaemon"+this.toString()+"_Logger");
-				logger.addHandler(hand);
-			} catch (SecurityException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 	}
-	
+
+	private String stacktraceToString(Exception e)
+	{
+		StringWriter errors = new StringWriter();
+		e.getCause().printStackTrace(new PrintWriter(errors));
+		return errors.toString();
+	}
 	/**
-	 * Waits for a request call from the calling class and splits the request
-	 * in its components to receive the methodname, the name of the declared
-	 * object, the parameter and the type of the parameter. 
+	 * Waits for a request call from the calling class and splits the request in
+	 * its components to receive the methodname, the name of the declared
+	 * object, the parameter and the type of the parameter.
 	 * 
-	 * After the check, the object will be put from the object list to 
-	 * perform a getMethod() call and execute it via invoke() and its 
-	 * parameters if it has one or more.
+	 * After the check, the object will be put from the object list to perform a
+	 * getMethod() call and execute it via invoke() and its parameters if it has
+	 * one or more.
 	 * 
 	 * Finally the result of the methodcall will be send back
 	 */
 	@Override
-	public void run() 
-	{
-		while (true) 
-		{
+	public void run() {
+		while (true) {
 			Object returnVal = null;
 			Object object = null;
-			
+
 			String receive = skeletonDaemonCom.receive();
 			String[] unmarshalled = receive.split("\\|");
-			
-			//Match all necessary info for further processing
+
+			// Match all necessary info for further processing
 			String methodName = unmarshalled[0];
 			String name = unmarshalled[1];
 			String param = unmarshalled[2];
 			String paramTyp = unmarshalled[3];
-			logger.info("[Recieved] Methodname: "+methodName+" Name: "+name+" Param: "+param+" ParamTyp: "+paramTyp);
-			Class<?> parameterTypes [] = {String.class};
-			
+			Class<?> parameterTypes[] = { String.class };
+
 			System.out.println("-----------------------------");
-			for(int i = 0; i < unmarshalled.length; i++)
-			{
-				System.out.println("unmarshalled (SkeletonDaemon) [" + i+ "] = " + unmarshalled[i] );
+			for (int i = 0; i < unmarshalled.length; i++) {
+				System.out.println("unmarshalled (SkeletonDaemon) [" + i
+						+ "] = " + unmarshalled[i]);
 			}
 			System.out.println("-----------------------------");
-			
-			//Check if the name is mentioned in the object list
-			if (objectList.containsKey(name)) 
-			{
+
+			// Check if the name is mentioned in the object list
+			if (objectList.containsKey(name)) {
 				object = objectList.get(name);
-				
+
 				/*
-				 * Determine the parameter types for the getMethod() call
-				 * (The types null, double and String are currently only accepted)
+				 * Determine the parameter types for the getMethod() call (The
+				 * types null, double and String are currently only accepted)
 				 */
-				if (paramTyp.equals("null")) 
-				{
+				if (paramTyp.equals("null")) {
 					parameterTypes = null;
-				} else if (paramTyp.equals(Double.class.toString())) 
-				{
+				} else if (paramTyp.equals(Double.class.toString())) {
 					parameterTypes[0] = double.class;
-				} else if (paramTyp.equals(String.class.toString())) 
-				{
+				} else if (paramTyp.equals(String.class.toString())) {
 					parameterTypes[0] = String.class;
 				}
-				//logger.info("Parameter Class:"+parameterTypes[0]);
+
 				try {
-					
-					Method method = object.getClass().getMethod(methodName, parameterTypes);
-					
-					//Check if method is Accessible
-					//(http://stackoverflow.com/questions/5184284/illegalaccessexception-on-using-reflection)
-					if(!method.isAccessible())
-					    method.setAccessible(true);
-					
+
+					Method method = object.getClass().getMethod(methodName,
+							parameterTypes);
+
+					// Check if method is Accessible
+					// (http://stackoverflow.com/questions/5184284/illegalaccessexception-on-using-reflection)
+					if (!method.isAccessible())
+						method.setAccessible(true);
+
 					/*
-					 * After the correct parameter type was determined the invoke()-Method 
-					 * can be called
+					 * After the correct parameter type was determined the
+					 * invoke()-Method can be called
 					 */
-					if (parameterTypes == null)
-					{
-						returnVal = method.invoke(object, (Object[])null); 
-					}
-					else 
-					if (parameterTypes[0].toString().equals(double.class.toString())) 
-					{
-						returnVal = method.invoke(object, Double.parseDouble(param));
-					} else 
-					{
+					if (parameterTypes == null) {
+						returnVal = method.invoke(object, (Object[]) null);
+					} else if (parameterTypes[0].toString().equals(
+							double.class.toString())) {
+						returnVal = method.invoke(object,
+								Double.parseDouble(param));
+					} else {
 						returnVal = method.invoke(object, param);
 					}
-					
+
 					/*
-					 * If the return type of the called method is void, there is no 
-					 * need to do a String interpretation appended on the OK-Code
+					 * If the return type of the called method is void, there is
+					 * no need to do a String interpretation appended on the
+					 * OK-Code
 					 */
-					if (!method.getReturnType().equals(Void.TYPE)) 
+					if (!method.getReturnType().equals(Void.TYPE))
 						skeletonDaemonCom.send("OK|" + returnVal.toString());
-					else 
+					else
 						skeletonDaemonCom.send("OK|");
-					
+
 				} catch (SecurityException e) {
 					e.printStackTrace();
 				} catch (NoSuchMethodException e) {
@@ -150,12 +137,37 @@ public class SkeletonDaemon implements Runnable {
 					e.printStackTrace();
 				} catch (IllegalAccessException e) {
 					e.printStackTrace();
-				} catch (InvocationTargetException e) { // Catch the Exception that may be thrown by a real method-invoke call 
-					logger.severe("InvocationTargetException was thrown by a real method-invoke call");
-					skeletonDaemonCom.send("ERROR|" + e.getCause().getMessage());
+				} catch (Exception e) { // Catch the Exception that may be thrown
+										// by a real method-invoke call
+				String exceptiontype = null;
+				System.out.println("### " + e.getClass() +"||" + e.getCause().getClass() + " ###");
+				
+					if(e instanceof InvocationTargetException)
+					{
+						exceptiontype = e.getCause().getClass().toString();
+						System.out.println("InvocationTargetException");
+						if(e.getCause() instanceof RuntimeException)
+						{
+							exceptiontype = e.getCause().getClass().toString();
+							System.out.println("RuntimeException");
+						}
+						else if(e.getCause() instanceof OverdraftException)
+						{
+							exceptiontype = e.getCause().getClass().toString();
+							System.out.println("OverdraftException");
+						}else
+						{
+							System.out.println("Else .. Exception type is " + e.getCause().getClass().toString());
+							exceptiontype = e.getClass().toString();
+						}
+					}
+					
+					System.out.println("EXCEPTIONTYPE: " + exceptiontype);
+					String tmp = stacktraceToString(e);
+					skeletonDaemonCom.send("ERROR|" + exceptiontype + "|");// e.getCause().getMessage());
+					
 				}
-			}else {
-				logger.severe("Object "+name+" was not in the list");
+			} else {
 				skeletonDaemonCom.send("ERROR|" + "Invalid key in object list");
 			}
 		}

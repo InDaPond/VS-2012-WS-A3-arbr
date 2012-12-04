@@ -3,8 +3,6 @@ package cash_access;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.logging.FileHandler;
-import java.util.logging.Logger;
 
 import mware_lib.Communication;
 
@@ -24,8 +22,6 @@ public class AccountImpl extends Account {
 	 */
 	private String accountId;
 	
-	private Logger logger;
-	
 	/**
 	 * Constructor to create a new Account
 	 * @param host IP Adress of the host
@@ -37,62 +33,68 @@ public class AccountImpl extends Account {
 			System.out.println("AccountImpl Constructor");
 			accountCom = new Communication(new Socket(host, Integer.parseInt(port)));
 			this.accountId = accountId;
-			FileHandler hand = new FileHandler("Account_"+accountId+".log");
-			logger = Logger.getLogger("Account_"+accountId+"_Logger");
-			logger.addHandler(hand);
 		} catch (UnknownHostException e) {
-			//System.out.println("failure: AccountImplProxy unknown host");
-			logger.severe("failure: AccountImplProxy unknown host");
+			System.out.println("failure: AccountImplProxy unknown host");
 		} catch (IOException e) {
-			//System.out.println("failure: io");
-			logger.severe("failure: io");
+			System.out.println("failure: io");
 		}
 	}
 	
 	@Override
-	public void withdraw(double amount) throws OverdraftException 
+	synchronized public void withdraw(double amount) throws OverdraftException 
 	{
 		String marshalled = "withdraw|" + accountId + "|" + String.valueOf(amount) + "|" + new Double(amount).getClass();
-		logger.info("[Withdraw] Account: "+accountId+" Amount: "+amount);
+		
 		accountCom.send(marshalled);
 		String[] reply = accountCom.receive().split("\\|");
 		
+		System.out.println("REPLY LENGTH: "+ reply.length);
+		
+		System.out.println("Replay... : " + reply[1] + " || " + reply[2]);
+		
 		//Check if the reply was successful
-		if (reply[0].equals("ERROR")){
-			logger.severe("[Withdraw] reply was NOT succesful: + "+reply[1]);
-			throw new OverdraftException(reply[1]);
+		if ((reply.length > 1) && (reply[0].equals("ERROR"))) 
+		{
+			if(reply[1].equals("class cash_access.RuntimeException"))
+				throw new RuntimeException(reply[2] + " a RuntimeException occured" );
+			
+			else if(reply[1].equals("class cash_access.OverdraftException"));
+				throw new OverdraftException(reply[2] + "an OverdraftException occurred");
 		}
+		else
+			System.out.println("FEEEEEEEEEEEEEEEEEEHHHHHHHHHHHHHHHHHHHHHLLLLLLLLLLLLLLLER");
+			
 	}
 
 	@Override
-	public void deposit(double amount) 
+	synchronized public void deposit(double amount) 
 	{
 		String marshalled = "deposit|" + accountId + "|" + String.valueOf(amount) + "|" + new Double(amount).getClass();
-		logger.info("[Deposit] Account: "+accountId+" Amount: "+amount);
+		
 		accountCom.send(marshalled);
 		String[] reply = accountCom.receive().split("\\|");
 		
 		//Check if the reply was successful
-		if (reply[0].equals("ERROR")){
-			logger.severe("[Deposit] reply was NOT successful: "+reply[1]);
-			throw new RuntimeException(reply[1]);
-		}
+		if (reply[0].equals("ERROR")) 
+			throw new RuntimeException(reply[2] + "the passed amount [" + amount + "] is invalid" );
 	}
 	
 	@Override
-	public double getBalance() 
+	synchronized public double getBalance() 
 	{
 		String marshalled = "getBalance|" + accountId + "|" + null + "|" + null;
-		logger.info("[getBalance] Account: "+accountId);
+		
 		accountCom.send(marshalled);
 		String[] reply = accountCom.receive().split("\\|");
 		
+		System.out.println("REPLY LENGTH: "+ reply.length);
 		//Check if the reply was successful
-		if (reply[0].equals("ERROR")){
-			logger.severe("[getBalance] reply was NOT succesfull: "+reply[1]);
-			throw new RuntimeException(reply[1]);
-		}
+		if (reply[0].equals("ERROR"))
+			throw new RuntimeException(reply[1] + "Error @ getBalance(), illegal operation performed");
 		
-		return Double.parseDouble(reply[1]);
+		if(reply.length > 1)
+			return Double.parseDouble(reply[1]);
+		else 
+			return 0.0;
 	}
 }
