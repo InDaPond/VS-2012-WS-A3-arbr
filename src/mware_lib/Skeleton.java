@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Benjamin Trapp
- * 		   Christoph Gröbke
+ * 		   Christoph Grï¿½bke
  */
 public class Skeleton implements Runnable 
 {
@@ -43,9 +43,11 @@ public class Skeleton implements Runnable
 		try 
 		{
 			serverSocket = new ServerSocket(PORT);
+			logInfo("Skeleton started at port "+PORT);
 		} catch (IOException e) {
 			e.printStackTrace();
-			System.out.println("failure: create serverSocket");
+			//System.out.println("failure: create serverSocket");
+			logError("failure: create serverSocket");
 		}
 		
 		objectList = new ConcurrentHashMap<String, Object>();
@@ -68,6 +70,7 @@ public class Skeleton implements Runnable
 	 */
 	public void addObject(Object object, String name) 
 	{
+		logInfo("[addObject] Name: "+name);
 		objectList.put(name, object);
 	}
 	
@@ -86,7 +89,8 @@ public class Skeleton implements Runnable
 				daemonThread.setDaemon(true);
 				daemonThread.start();
 			} catch (IOException e) {
-				System.out.println("ERROR @ start SkeletonDaemon");
+				//System.out.println("ERROR @ start SkeletonDaemon");
+				logError("[Run] ERROR @ start SkeletonDaemon");
 			}			
 		}
 	}
@@ -96,7 +100,16 @@ public class Skeleton implements Runnable
 	 */
 	public void stop()
 	{
-		System.out.println("Skeleton Thread-Instance will be stopped");
+		//System.out.println("Skeleton Thread-Instance will be stopped");
+		logInfo("[Stop] Skeleton Thread-Instance will be stopped");
 		isRunning = false;
+	}
+	
+	private void logInfo(String log){
+		LoggerImpl.info(this.getClass().getName(), log);
+	}
+		
+	private void logError(String log){
+		LoggerImpl.error(this.getClass().getName(), log);
 	}
 }

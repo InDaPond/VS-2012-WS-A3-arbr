@@ -1,8 +1,10 @@
 package mware_lib;
 
+import mware_lib.LoggerImpl;
+
 /**
  * @author Benjamin Trapp
- * 		   Christoph Gröbke
+ * 		   Christoph Grï¿½bke
  */
 public class ObjectBroker
 {
@@ -24,7 +26,7 @@ public class ObjectBroker
 	 * of the ObjectBroker.
 	 * 
 	 * Original-Description:
-	 *    // Das hier zurückgelieferte Objekt soll der zentrale Einstiegspunkt 
+	 *    // Das hier zurï¿½ckgelieferte Objekt soll der zentrale Einstiegspunkt 
      *    // der Middleware aus Anwendersicht sein.
      *    // Parameter: Host und Port, bei dem die Dienste (Namensdienst)
      *    //            kontaktiert werden sollen.
@@ -48,7 +50,12 @@ public class ObjectBroker
     public static ObjectBroker getBroker(String serviceHost, int listenPort)
     {
         // 'Ere we go again, oppan gangnam-brainfuck style
-        return (instance == null) ? instance = new ObjectBroker(serviceHost, listenPort) : instance;
+    	if(instance == null){
+    		instance = new ObjectBroker(serviceHost, listenPort);
+    		instance.logInfo("[getBroker] Host: "+serviceHost+" Port: "+listenPort);
+    	}
+    	return instance;
+      //  return (instance == null) ? instance = new ObjectBroker(serviceHost, listenPort) : instance;
     }
 
     /**
@@ -59,4 +66,12 @@ public class ObjectBroker
     {
         return new NameServiceImp(serviceHost, listenPort);
     }
+    
+    private void logInfo(String log){
+		LoggerImpl.info(this.getClass().getName(), log);
+	}
+	
+	private void logError(String log){
+		LoggerImpl.error(this.getClass().getName(), log);
+	}
 }

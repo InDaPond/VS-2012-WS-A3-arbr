@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 /**
- * @author Benjamin Trapp Christoph Gröbke
+ * @author Benjamin Trapp Christoph Grï¿½bke
  */
 public class Communication extends ACom {
 	/**
@@ -36,7 +36,8 @@ public class Communication extends ACom {
 			super.outStream.write(marshalledMsg.getBytes());
 			super.outStream.flush();
 		} catch (IOException e) {
-			System.err.println("ERROR @ write output stream");
+			//System.err.println("ERROR @ write output stream");
+			logError("[Send] ERROR @ write output stream");
 			e.printStackTrace();
 		}
 	}
@@ -58,7 +59,8 @@ public class Communication extends ACom {
 			}
 
 		} catch (Exception e) {
-			System.err.println("ERROR @ read input stream (receive)");
+			//System.err.println("ERROR @ read input stream (receive)");
+			logError("[Recieve] ERROR @ read input stream (receive)");
 			e.printStackTrace();
 		}
 		return resu.toString();
@@ -73,4 +75,11 @@ public class Communication extends ACom {
 		return sock.getInetAddress().getHostAddress();
 	}
 
+	private void logInfo(String log){
+		LoggerImpl.info(this.toString(), log);
+	}
+		
+	private void logError(String log){
+		LoggerImpl.error(this.toString(), log);
+	}
 }

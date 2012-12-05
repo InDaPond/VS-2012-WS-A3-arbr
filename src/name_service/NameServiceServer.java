@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Benjamin Trapp
- * 		   Christoph Gröbke
+ * 		   Christoph Grï¿½bke
  */
 public class NameServiceServer implements Runnable 
 {
@@ -44,9 +44,10 @@ public class NameServiceServer implements Runnable
 		
 		try {
 			serverSocket = new ServerSocket(port);
-			System.out.println("NameServiceServer started");
+			//System.out.println("NameServiceServer started");
+			logInfo("NameServiceServer started on port "+port);
 		} catch (IOException e) {
-			System.out.println("failure: new ServerSocket(port)");
+			logError("failure: new ServerSocket("+port+")");
 		}
 	}
 	
@@ -65,7 +66,7 @@ public class NameServiceServer implements Runnable
 			tmp.setDaemon(true); 
 			tmp.start();
 		} catch (IOException e) {
-			System.out.println("failure: NameService accept()");
+			logError("failure: NameService accept()");
 		}
 	}
 	
@@ -94,5 +95,13 @@ public class NameServiceServer implements Runnable
 		} else {
 			new Thread(new NameServiceServer()).start();
 		}
+	}
+	
+	private void logInfo(String log){
+		LoggerImpl.info(this.getClass().getName(), log);
+	}
+	
+	private void logError(String log){
+		LoggerImpl.error(this.getClass().getName(), log);
 	}
 }

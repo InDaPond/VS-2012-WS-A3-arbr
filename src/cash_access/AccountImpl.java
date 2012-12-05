@@ -5,10 +5,11 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 import mware_lib.Communication;
+import mware_lib.LoggerImpl;
 
 /**
  * @author Benjamin Trapp
- * 		   Christoph Gröbke
+ * 		   Christoph Grï¿½bke
  */
 public class AccountImpl extends Account {
 
@@ -33,9 +34,11 @@ public class AccountImpl extends Account {
 			accountCom = new Communication(new Socket(host, Integer.parseInt(port)));
 			this.accountId = accountId;
 		} catch (UnknownHostException e) {
-			System.out.println("failure: AccountImplProxy unknown host");
+			logError("failure: AccountImplProxy unknown host");
+			//System.out.println("failure: AccountImplProxy unknown host");
 		} catch (IOException e) {
-			System.out.println("failure: io");
+			logError("failure: io");
+			//System.out.println("failure: io");
 		}
 	}
 	
@@ -43,13 +46,14 @@ public class AccountImpl extends Account {
 	public synchronized final void withdraw(double amount) throws OverdraftException 
 	{
 		String marshalled = "withdraw|" + accountId + "|" + String.valueOf(amount) + "|" + new Double(amount).getClass();
-		
+		logInfo("[Withdraw] AccountID: "+accountId+" Amount:"+amount);
 		accountCom.send(marshalled);
 		String[] reply = accountCom.receive().split("\\|");
 		
 		//Check if the reply was successful
 		if (reply[0].equals("ERROR")) 
 		{
+			logError("[Withdraw] Error-type: "+reply[1]+" Error: "+reply[2]);
 			if(reply[1].equals("class java.lang.RuntimeException"))
 				throw new RuntimeException(reply[2]);
 			
@@ -65,13 +69,14 @@ public class AccountImpl extends Account {
 	public final synchronized void deposit(double amount) 
 	{
 		String marshalled = "deposit|" + accountId + "|" + String.valueOf(amount) + "|" + new Double(amount).getClass();
-		
+		logInfo("[Deposit] AccountID: "+accountId+" Amount: "+amount);
 		accountCom.send(marshalled);
 		String[] reply = accountCom.receive().split("\\|");
 		
 		//Check if the reply was successful
 		if (reply[0].equals("ERROR")) 
 		{
+			logError("[Deposit] Error-type: "+reply[1]+" Error: "+reply[2]);
 			if(reply[1].equals("class java.lang.RuntimeException"))
 				throw new RuntimeException(reply[2]);
 			
@@ -86,17 +91,26 @@ public class AccountImpl extends Account {
 	public final synchronized double getBalance() 
 	{
 		String marshalled = "getBalance|" + accountId + "|" + null + "|" + null;
-		
+		logInfo("[getBalance] AccountID: "+accountId);
 		accountCom.send(marshalled);
 		String[] reply = accountCom.receive().split("\\|");
 				
 		//Check if the reply was successful
-		if (reply[0].equals("ERROR"))
+		if (reply[0].equals("ERROR")){
+			logError("[getBalance] illegal operation performed");
 			throw new RuntimeException(reply[1] + "Error @ getBalance(), illegal operation performed");
-				
+		}
 		if(reply.length > 1)
 			return Double.parseDouble(reply[1]);
 		else 
 			return 0.0;
+	}
+	
+	private void logInfo(String log){
+		LoggerImpl.info(this.getClass().getName()+accountId, log);
+	}
+		
+	private void logError(String log){
+		LoggerImpl.error(this.getClass().getName()+accountId, log);
 	}
 }

@@ -6,7 +6,7 @@ import mware_lib.Communication;
 
 /**
  * @author Benjamin Trapp
- * 		   Christoph Gröbke
+ * 		   Christoph Grï¿½bke
  */
 public class NameServiceDaemon implements Runnable 
 {
@@ -44,13 +44,15 @@ public class NameServiceDaemon implements Runnable
 	public void rebind(String name, String infos) 
 	{
 		String infosTmp = nameServiceCom.getHostAddr() + "|" + infos;
-		
+		logInfo("[Rebind] Name: "+name+" Infos: "+infosTmp);
 		if (!nameServiceElements.containsKey(name)) 
 		{
 			nameServiceElements.put(name, infosTmp);
 			
-			if (!nameServiceElements.containsKey(name)) 
+			if (!nameServiceElements.containsKey(name)){ 
+				logError("[Rebind] failed. Name: "+name);
 				throw new RuntimeException("Call of [" + name + "] failed...");
+			}
 		} 
 	}			
 	
@@ -64,8 +66,10 @@ public class NameServiceDaemon implements Runnable
 	 */
 	public String resolve(String name) 
 	{
-		if (nameServiceElements.get(name) == null) 
+		if (nameServiceElements.get(name) == null){
+			logError("[Resolve] Passed name was null. Name: "+name);
 			throw new RuntimeException("ERROR: Passed name was null");
+		}
 		
 		return nameServiceElements.get(name);
 	}
@@ -112,9 +116,18 @@ public class NameServiceDaemon implements Runnable
 	@Override
 	public void run() 
 	{
+		logInfo("NameServiceDaemon started");
 		while (true)
 		{
 			unmarshal(nameServiceCom.receive());
 		}
+	}
+	
+	private void logInfo(String log){
+		LoggerImpl.info(this.getClass().getName(), log);
+	}
+	
+	private void logError(String log){
+		LoggerImpl.error(this.getClass().getName(), log);
 	}
 }

@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import cash_access.OverdraftException;
 
 /**
- * @author Benjamin Trapp Christoph Gröbke
+ * @author Benjamin Trapp Christoph Grï¿½bke
  */
 public class SkeletonDaemon implements Runnable {
 
@@ -66,6 +66,7 @@ public class SkeletonDaemon implements Runnable {
 	 */
 	@Override
 	public void run() {
+		logInfo("SkeletonDaemon started");
 		while (true) {
 			Object returnVal = null;
 			Object object = null;
@@ -79,7 +80,7 @@ public class SkeletonDaemon implements Runnable {
 			String param = unmarshalled[2];
 			String paramTyp = unmarshalled[3];
 			Class<?> parameterTypes[] = { String.class };
-
+			logInfo("Methodname: "+methodName+" Param: "+param+" Name: "+name);
 			if(DEBUG == true)
 			{
 				System.out.println("-----------------------------");
@@ -99,10 +100,13 @@ public class SkeletonDaemon implements Runnable {
 				 * types null, double and String are currently only accepted)
 				 */
 				if (paramTyp.equals("null")) {
+					logInfo("paramType is null");
 					parameterTypes = null;
 				} else if (paramTyp.equals(Double.class.toString())) {
+					logInfo("paramType is Double");
 					parameterTypes[0] = double.class;
 				} else if (paramTyp.equals(String.class.toString())) {
+					logInfo("paramType is String");
 					parameterTypes[0] = String.class;
 				}
 
@@ -141,12 +145,16 @@ public class SkeletonDaemon implements Runnable {
 						skeletonDaemonCom.send("OK|");
 
 				} catch (SecurityException e) {
+					logError("SecurityException");
 					e.printStackTrace();
 				} catch (NoSuchMethodException e) {
+					logError("NoSuchMethodException");
 					e.printStackTrace();
 				} catch (IllegalArgumentException e) {
+					logError("IllegalArgumentException");
 					e.printStackTrace();
 				} catch (IllegalAccessException e) {
+					logError("IllegalAccessException");
 					e.printStackTrace();
 				} catch (Exception e) { // Catch the Exception that may be thrown by a real method-invoke call
 					String exceptiontype = null;
@@ -163,12 +171,22 @@ public class SkeletonDaemon implements Runnable {
 					
 					String tmp = stacktraceToString(e);
 					System.out.println(tmp);	//Prints the stack trace at the bank output... 
+					logInfo("Caught "+exceptiontype+" and informed about it");
 					skeletonDaemonCom.send("ERROR|" + exceptiontype + "|" + e.getCause().getMessage() + "|" + tmp);
 				}
 			} else {
+				logError("Invalid key in object list");
 				skeletonDaemonCom.send("ERROR|" + "Invalid key in object list");
 			}
 		}
+	}
+	
+	private void logInfo(String log){
+		LoggerImpl.info(this.toString(), log);
+	}
+		
+	private void logError(String log){
+		LoggerImpl.error(this.toString(), log);
 	}
 
 }

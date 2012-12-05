@@ -16,7 +16,7 @@ import cash_access.*;
 
 /**
  * @author Benjamin Trapp
- * 		   Christoph Gröbke
+ * 		   Christoph Grï¿½bke
  */
 public class NameServiceImp extends NameService
 {
@@ -40,9 +40,11 @@ public class NameServiceImp extends NameService
 		try {
 			nameServiceCom = new Communication(new Socket(host, port));
 		} catch (UnknownHostException e) {
-			System.out.println("failure: nsProxy unknown host");
+			//System.out.println("failure: nsProxy unknown host");
+			logError("failure: nsProxy unknown host");
 		} catch (IOException e) {
-			System.out.println("failure: io");
+			//System.out.println("failure: io");
+			logError("failure: io");
 		}
     }
     
@@ -57,23 +59,29 @@ public class NameServiceImp extends NameService
 		String[] reply = null;
 		
 		if (servant instanceof Manager) {
+			logInfo("[Rebind] Servant is a Manager");
 			className = ManagerImpl.class.getCanonicalName();
 		} else if (servant instanceof Account) {
+			logInfo("[Rebind] Servant is an Account");
 			className = AccountImpl.class.getCanonicalName();
 		} else {
+			logError("Servant is invalid for this NameService. Class: "+servant.toString());
 			throw new RuntimeException("The passed Object "
 					+ servant.toString() + "is invalid for this NameService");
 		}
 		
 		//Marshal String and create reply
 		marshaled = "rebind||" + port + "|" + className + "||"+ name;
+		logInfo("[Rebind] Port: "+port+" className: "+className+" Name: "+name);
 		nameServiceCom.send(marshaled);
 		reply = nameServiceCom.receive().split("\\|");
 		
 		//Validate the reply
 		if (reply[0].equals("OK")) {
+			logInfo("[Rebind] seccessful");
 			skeleton.addObject(servant, name);
 		}else {
+			logInfo("[Rebind] NOT successful");
 			throw new RuntimeException("BAM" + reply[1]);
 		}
 
@@ -91,18 +99,20 @@ public class NameServiceImp extends NameService
 		String hostAdress = null;
 		
 		marshaled = "resolve||" + name;
+		logInfo("[Resolve] Name: "+name);
 		nameServiceCom.send(marshaled);
 		reply = nameServiceCom.receive().split("\\|");
 
 		//Check if reply is free of errors
 		if (reply[0].equals("ERROR")) {
+			logError("[Resolve] was NOT successful");
 			throw new RuntimeException(reply[1]);
 		}
 
 		className = reply[3];
 		port = reply[2];
 		hostAdress = reply[1];
-
+		logInfo("[Resolve] successful. className: "+className+" Port: "+port+" Host: "+hostAdress);
 		paramList.add(hostAdress);
 		paramList.add(port);
 		
@@ -130,10 +140,19 @@ public class NameServiceImp extends NameService
 		} catch (Exception e) 
 		{
 			e.printStackTrace();
-			System.out.println("ERROR @ NameServiceImp: Can't create Proxy");
+			//System.out.println("ERROR @ NameServiceImp: Can't create Proxy");
+			logError("NameServiceImp: Can't create Proxy");
 		}
 		
 		return "This return should be Unreachable...";
     }
+    
+    private void logInfo(String log){
+		LoggerImpl.info(this.toString(), log);
+	}
+	
+	private void logError(String log){
+		LoggerImpl.error(this.toString(), log);
+	}
 
 }
