@@ -31,7 +31,6 @@ public class LoggerImpl {
 		System.out.println(temp);
 		if(saveToFile){
 			try {
-				System.out.println(file.getAbsolutePath());
 				BufferedWriter out = new BufferedWriter(new FileWriter(file));
 				out.write(temp);
 				out.close();
