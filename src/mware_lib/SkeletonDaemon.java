@@ -23,6 +23,10 @@ public class SkeletonDaemon implements Runnable {
 	 * ConcurrentHashMap to represent the object list
 	 */
 	private ConcurrentHashMap<String, Object> objectList;
+	/**
+	 * Set on true, to see further debug info (Reply String)
+	 */
+	private boolean DEBUG = false; 
 
 	/**
 	 * Constructor of the skeleton daemon
@@ -32,19 +36,23 @@ public class SkeletonDaemon implements Runnable {
 	 * @param objectList
 	 *            lists from the nameservice with all known objects
 	 */
-	public SkeletonDaemon(Socket socket,
-			ConcurrentHashMap<String, Object> objectList) {
-		System.out.println("SkeletonDaemon is up and running");
+	public SkeletonDaemon(Socket socket, ConcurrentHashMap<String, Object> objectList) {
 		this.objectList = objectList;
 		this.skeletonDaemonCom = new Communication(socket);
 	}
-
+	
+	/**
+	 * This method prints a complete stack trace from a passed exception
+	 * @param e occurred exception
+	 * @return String containing the complete stack trace of the passed exception
+	 */
 	private String stacktraceToString(Exception e)
 	{
 		StringWriter errors = new StringWriter();
 		e.getCause().printStackTrace(new PrintWriter(errors));
 		return errors.toString();
 	}
+	
 	/**
 	 * Waits for a request call from the calling class and splits the request in
 	 * its components to receive the methodname, the name of the declared
@@ -72,12 +80,15 @@ public class SkeletonDaemon implements Runnable {
 			String paramTyp = unmarshalled[3];
 			Class<?> parameterTypes[] = { String.class };
 
-			System.out.println("-----------------------------");
-			for (int i = 0; i < unmarshalled.length; i++) {
-				System.out.println("unmarshalled (SkeletonDaemon) [" + i
-						+ "] = " + unmarshalled[i]);
+			if(DEBUG == true)
+			{
+				System.out.println("-----------------------------");
+				for (int i = 0; i < unmarshalled.length; i++) {
+					System.out.println("unmarshalled (SkeletonDaemon) [" + i
+							+ "] = " + unmarshalled[i]);
+				}
+				System.out.println("-----------------------------");
 			}
-			System.out.println("-----------------------------");
 
 			// Check if the name is mentioned in the object list
 			if (objectList.containsKey(name)) {
@@ -137,35 +148,22 @@ public class SkeletonDaemon implements Runnable {
 					e.printStackTrace();
 				} catch (IllegalAccessException e) {
 					e.printStackTrace();
-				} catch (Exception e) { // Catch the Exception that may be thrown
-										// by a real method-invoke call
-				String exceptiontype = null;
-				System.out.println("### " + e.getClass() +"||" + e.getCause().getClass() + " ###");
+				} catch (Exception e) { // Catch the Exception that may be thrown by a real method-invoke call
+					String exceptiontype = null;
 				
 					if(e instanceof InvocationTargetException)
 					{
-						exceptiontype = e.getCause().getClass().toString();
-						System.out.println("InvocationTargetException");
 						if(e.getCause() instanceof RuntimeException)
-						{
 							exceptiontype = e.getCause().getClass().toString();
-							System.out.println("RuntimeException");
-						}
 						else if(e.getCause() instanceof OverdraftException)
-						{
 							exceptiontype = e.getCause().getClass().toString();
-							System.out.println("OverdraftException");
-						}else
-						{
-							System.out.println("Else .. Exception type is " + e.getCause().getClass().toString());
-							exceptiontype = e.getClass().toString();
-						}
+						else
+							exceptiontype = e.getCause().getClass().toString();
 					}
 					
-					System.out.println("EXCEPTIONTYPE: " + exceptiontype);
 					String tmp = stacktraceToString(e);
-					skeletonDaemonCom.send("ERROR|" + exceptiontype + "|");// e.getCause().getMessage());
-					
+					System.out.println(tmp);	//Prints the stack trace at the bank output... 
+					skeletonDaemonCom.send("ERROR|" + exceptiontype + "|" + e.getCause().getMessage() + "|" + tmp);
 				}
 			} else {
 				skeletonDaemonCom.send("ERROR|" + "Invalid key in object list");

@@ -38,11 +38,8 @@ public class ManagerImpl extends Manager
 		} 
 	}
 	
-    /* (non-Javadoc)
-     * @see aufgabe3.branch_access.Manager#createAccount(java.lang.String)
-     */
     @Override
-    public String createAccount(String owner)
+    public final synchronized String createAccount(String owner)
     {
 		String marshalled = "createAccount|" + bankName + "|" +  owner + "|" +  owner.toString();
 		managerCom.send(marshalled);
@@ -53,15 +50,13 @@ public class ManagerImpl extends Manager
 		{
 			return reply[1];
 		} else {
-			throw new RuntimeException("ERROR during creation of the Account");
+			throw new RuntimeException(reply[2]);
 		}
     }
 
-    /* (non-Javadoc)
-     * @see aufgabe3.branch_access.Manager#removeAccount(java.lang.String)
-     */
+
     @Override
-    public double getBalance(String accountID)
+    public final synchronized double getBalance(String accountID)
     {
 		String marshalled = "getBalance|" + bankName + "|" + accountID + "|" + accountID.toString();
 		managerCom.send(marshalled);
@@ -72,9 +67,7 @@ public class ManagerImpl extends Manager
 		{
 			return Double.parseDouble(reply[1]);
 		} else {
-			throw new RuntimeException("ERROR @ getBalance (ManagerImp), Illegal Operation on accountID: " + accountID);
-		    //System.out.println("ERROR @ getBalance (ManagerImp), Illegal Operation on accountID: " + accountID);
-		    //return new Double(null);
+			throw new RuntimeException(reply[2]);
 		}
     }
 

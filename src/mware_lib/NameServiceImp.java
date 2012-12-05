@@ -25,6 +25,10 @@ public class NameServiceImp extends NameService
      * software
      */
 	private Communication nameServiceCom;
+	/**
+	 * Set on true, to see further debug info (Reply String)
+	 */
+	private boolean DEBUG = false;
 	
 	/**
 	 * Constructor of the NameService Implementation 
@@ -35,7 +39,6 @@ public class NameServiceImp extends NameService
     {
 		try {
 			nameServiceCom = new Communication(new Socket(host, port));
-			System.out.println("connected to NameService");
 		} catch (UnknownHostException e) {
 			System.out.println("failure: nsProxy unknown host");
 		} catch (IOException e) {
@@ -62,7 +65,7 @@ public class NameServiceImp extends NameService
 					+ servant.toString() + "is invalid for this NameService");
 		}
 		
-		//Marshal String and create replay
+		//Marshal String and create reply
 		marshaled = "rebind||" + port + "|" + className + "||"+ name;
 		nameServiceCom.send(marshaled);
 		reply = nameServiceCom.receive().split("\\|");
@@ -103,12 +106,15 @@ public class NameServiceImp extends NameService
 		paramList.add(hostAdress);
 		paramList.add(port);
 		
-		System.out.println("=================================");
-		for(int i = 0; i < 4; i++)
+		if(DEBUG == true)
 		{
-			System.out.println("reply[" + i + "] = " + reply[i]);
+			System.out.println("=================================");
+			for(int i = 0; i < 4; i++)
+			{
+				System.out.println("reply[" + i + "] = " + reply[i]);
+			}
+			System.out.println("=================================");
 		}
-		System.out.println("=================================");
 		
 		try {
 			for (Constructor<?> constructor : Class.forName(className).getConstructors()) 

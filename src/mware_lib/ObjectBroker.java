@@ -47,7 +47,6 @@ public class ObjectBroker
      */
     public static ObjectBroker getBroker(String serviceHost, int listenPort)
     {
-    	System.out.println("@get Instance ObjectBroker");
         // 'Ere we go again, oppan gangnam-brainfuck style
         return (instance == null) ? instance = new ObjectBroker(serviceHost, listenPort) : instance;
     }

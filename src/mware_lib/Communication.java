@@ -1,8 +1,6 @@
 package mware_lib;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.Socket;
 
 /**
@@ -53,13 +51,10 @@ public class Communication extends ACom {
 			while (!super.inStream.ready())
 				Thread.sleep(100);
 
-//			resu.delete(0, resu.length()-1);
 			while ((line = inStream.readLine()) != null) {
-				System.out.println(line);
 				resu.append(line);
 				if(!super.inStream.ready())
 					break;
-				System.out.println(resu);
 			}
 
 		} catch (Exception e) {
@@ -75,7 +70,6 @@ public class Communication extends ACom {
 	 * @return String containing the Host-Address
 	 */
 	public String getHostAddr() {
-		System.out.println("ACom @ getHostAdress");
 		return sock.getInetAddress().getHostAddress();
 	}
 

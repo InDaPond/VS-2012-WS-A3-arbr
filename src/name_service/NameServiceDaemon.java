@@ -20,6 +20,11 @@ public class NameServiceDaemon implements Runnable
 	 */
 	private ConcurrentHashMap<String, String> nameServiceElements;
 	
+	/**
+	 * Constructor to create a new NameServiceDaemon to handle the client calls
+	 * @param socket Socket for the communication
+	 * @param map Threadsafe HashMap that contains the elements of the Name Service
+	 */
 	public NameServiceDaemon(Socket socket, ConcurrentHashMap<String, String> map) 
 	{
 		this.nameServiceElements = map;
@@ -31,7 +36,7 @@ public class NameServiceDaemon implements Runnable
 	 * to the name service. 
 	 * 
 	 * If the name already exists, the method will
-	 * throw a RemoteException thrown
+	 * throw a RemoteException 
 	 * 
 	 * @param name - name of the declared object
 	 * @param infos - info about the remote object
@@ -66,28 +71,25 @@ public class NameServiceDaemon implements Runnable
 	}
 	
 	/**
-	 * Unmarshalles a given marshalled string and calls the
+	 * Unmarshales a given marshaled string and calls the
 	 * corresponding Method with its parameters if it has some.
 	 * 
-	 * If no exception occurres the "OK"-Code will be send back
+	 * If no exception occurre the "OK"-Code will be send back
 	 * otherwise an "ERROR" Code
 	 * 
-	 * @param marshalled String that shall be marshalled
+	 * @param marshalled String that shall be marshaled
 	 */
-	private void unmarshall(String marshalled) 
+	private void unmarshal(String marshalled) 
 	{
 		String[] unmarshalled = marshalled.split("\\|\\|");
 		String method = unmarshalled[0];
-		
-		System.out.println("NameServiceDeamon| " + unmarshalled[0]);
-		
+				
 		if (method.equals("rebind"))
 		{
 			try {
 				rebind(unmarshalled[2], unmarshalled[1] + "|" + unmarshalled[2]);
 				nameServiceCom.send("OK|");
 			} catch (RuntimeException e) {
-				System.out.println("RuntimeException @ NameServiceDaemon");
 				nameServiceCom.send("ERROR|" + e.getMessage());
 			}
 		} else if (method.equals("resolve")) 
@@ -95,7 +97,6 @@ public class NameServiceDaemon implements Runnable
 			try {
 				nameServiceCom.send("OK|" + resolve(unmarshalled[1]));
 			} catch(RuntimeException e) {
-				System.out.println("RuntimeException @ NameServiceDaemon");
 				nameServiceCom.send("ERROR|" + e.getMessage());
 			}
 		}else
@@ -105,15 +106,15 @@ public class NameServiceDaemon implements Runnable
 	}
 	
 	/**
-	 * Waits on requests and calls after the request was receivd the unmarshall()-Method with the 
-	 * marshalled String.
+	 * Waits on requests and calls after the request was received the unmarshal()-Method with the 
+	 * marshaled String.
 	 */
 	@Override
 	public void run() 
 	{
 		while (true)
 		{
-			unmarshall(nameServiceCom.receive());
+			unmarshal(nameServiceCom.receive());
 		}
 	}
 }

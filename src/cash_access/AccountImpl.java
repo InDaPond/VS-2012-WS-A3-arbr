@@ -30,7 +30,6 @@ public class AccountImpl extends Account {
 	 */
 	public AccountImpl(String host, String port, String accountId) {
 		try {
-			System.out.println("AccountImpl Constructor");
 			accountCom = new Communication(new Socket(host, Integer.parseInt(port)));
 			this.accountId = accountId;
 		} catch (UnknownHostException e) {
@@ -41,33 +40,29 @@ public class AccountImpl extends Account {
 	}
 	
 	@Override
-	synchronized public void withdraw(double amount) throws OverdraftException 
+	public synchronized final void withdraw(double amount) throws OverdraftException 
 	{
 		String marshalled = "withdraw|" + accountId + "|" + String.valueOf(amount) + "|" + new Double(amount).getClass();
 		
 		accountCom.send(marshalled);
 		String[] reply = accountCom.receive().split("\\|");
 		
-		System.out.println("REPLY LENGTH: "+ reply.length);
-		
-		System.out.println("Replay... : " + reply[1] + " || " + reply[2]);
-		
 		//Check if the reply was successful
-		if ((reply.length > 1) && (reply[0].equals("ERROR"))) 
+		if (reply[0].equals("ERROR")) 
 		{
-			if(reply[1].equals("class cash_access.RuntimeException"))
-				throw new RuntimeException(reply[2] + " a RuntimeException occured" );
+			if(reply[1].equals("class java.lang.RuntimeException"))
+				throw new RuntimeException(reply[2]);
 			
-			else if(reply[1].equals("class cash_access.OverdraftException"));
-				throw new OverdraftException(reply[2] + "an OverdraftException occurred");
+			else if(reply[1].equals("class cash_access.OverdraftException"))
+				throw new OverdraftException(reply[2]);
+			else
+				throw new RuntimeException(reply[2]);
 		}
-		else
-			System.out.println("FEEEEEEEEEEEEEEEEEEHHHHHHHHHHHHHHHHHHHHHLLLLLLLLLLLLLLLER");
 			
 	}
 
 	@Override
-	synchronized public void deposit(double amount) 
+	public final synchronized void deposit(double amount) 
 	{
 		String marshalled = "deposit|" + accountId + "|" + String.valueOf(amount) + "|" + new Double(amount).getClass();
 		
@@ -76,22 +71,29 @@ public class AccountImpl extends Account {
 		
 		//Check if the reply was successful
 		if (reply[0].equals("ERROR")) 
-			throw new RuntimeException(reply[2] + "the passed amount [" + amount + "] is invalid" );
+		{
+			if(reply[1].equals("class java.lang.RuntimeException"))
+				throw new RuntimeException(reply[2]);
+			
+			else if(reply[1].equals("class cash_access.OverdraftException"))
+				throw new RuntimeException("Catched the wrong exception" + reply[1] + " msg: " + reply[2]);
+			else
+				throw new RuntimeException(reply[2]);
+		}
 	}
 	
 	@Override
-	synchronized public double getBalance() 
+	public final synchronized double getBalance() 
 	{
 		String marshalled = "getBalance|" + accountId + "|" + null + "|" + null;
 		
 		accountCom.send(marshalled);
 		String[] reply = accountCom.receive().split("\\|");
-		
-		System.out.println("REPLY LENGTH: "+ reply.length);
+				
 		//Check if the reply was successful
 		if (reply[0].equals("ERROR"))
 			throw new RuntimeException(reply[1] + "Error @ getBalance(), illegal operation performed");
-		
+				
 		if(reply.length > 1)
 			return Double.parseDouble(reply[1]);
 		else 
