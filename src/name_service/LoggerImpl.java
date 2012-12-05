@@ -31,7 +31,7 @@ public class LoggerImpl {
 		System.out.println(temp);
 		if(saveToFile){
 			try {
-				BufferedWriter out = new BufferedWriter(new FileWriter(file));
+				BufferedWriter out = new BufferedWriter(new FileWriter(file,true));
 				out.write(temp);
 				out.close();
 			} catch (IOException e) {
