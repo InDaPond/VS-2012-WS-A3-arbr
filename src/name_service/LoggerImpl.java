@@ -10,7 +10,7 @@ public class LoggerImpl {
 	
 	private static boolean saveToFile = true;
 	private static String packagename = LoggerImpl.class.getName().substring(0, LoggerImpl.class.getClass().getName().lastIndexOf("."));
-	private static File file = new File(File.separator+packagename+".log");
+	private static File file = new File("."+File.separator+packagename+".log");
 	
 	
 	public static void info(String className, String log){
