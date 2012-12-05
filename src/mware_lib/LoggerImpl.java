@@ -27,7 +27,7 @@ public class LoggerImpl {
 	
 	private static synchronized void log(String log){
 		Timestamp t = new Timestamp(System.currentTimeMillis());
-		String temp = t.toString()+" "+log;
+		String temp = t.toString()+" "+log+"\n";
 		System.out.println(temp);
 		if(saveToFile){
 			try {
