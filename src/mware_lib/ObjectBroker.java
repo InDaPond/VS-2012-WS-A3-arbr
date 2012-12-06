@@ -71,6 +71,7 @@ public class ObjectBroker
 		LoggerImpl.info(this.getClass().getName(), log);
 	}
 	
+	@SuppressWarnings("unused")
 	private void logError(String log){
 		LoggerImpl.error(this.getClass().getName(), log);
 	}

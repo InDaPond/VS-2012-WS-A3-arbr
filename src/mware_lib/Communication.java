@@ -75,6 +75,7 @@ public class Communication extends ACom {
 		return sock.getInetAddress().getHostAddress();
 	}
 
+	@SuppressWarnings("unused")
 	private void logInfo(String log){
 		LoggerImpl.info(this.toString(), log);
 	}
