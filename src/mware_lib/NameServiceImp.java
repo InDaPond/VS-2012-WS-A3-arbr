@@ -11,9 +11,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.lang.reflect.Constructor;
 
-import branch_access.*;
-import cash_access.*;
-
 /**
  * @author Benjamin Trapp
  * 		   Christoph Gr�bke
@@ -51,6 +48,7 @@ public class NameServiceImp extends NameService
     @Override
     public void rebind(Object servant, String name)
     {
+    	
 		int port = 0;
 		String className = null;
 		Skeleton skeleton = Skeleton.getInstance();
@@ -58,17 +56,19 @@ public class NameServiceImp extends NameService
 		String marshaled = null;
 		String[] reply = null;
 		
-		if (servant instanceof Manager) {
-			logInfo("[Rebind] Servant is a Manager");
-			className = ManagerImpl.class.getCanonicalName();
-		} else if (servant instanceof Account) {
-			logInfo("[Rebind] Servant is an Account");
-			className = AccountImpl.class.getCanonicalName();
-		} else {
-			logError("Servant is invalid for this NameService. Class: "+servant.toString());
-			throw new RuntimeException("The passed Object "
-					+ servant.toString() + "is invalid for this NameService");
-		}
+//		if (servant instanceof Manager) {
+//			logInfo("[Rebind] Servant is a Manager");
+//			className = ManagerImpl.class.getCanonicalName();
+//		} else if (servant instanceof Account) {
+//			logInfo("[Rebind] Servant is an Account");
+//			className = AccountImpl.class.getCanonicalName();
+//		} else {
+//			logError("Servant is invalid for this NameService. Class: "+servant.toString());
+//			throw new RuntimeException("The passed Object "
+//					+ servant.toString() + "is invalid for this NameService");
+//		}
+//		
+		className = servant.getClass().getCanonicalName();
 		
 		//Marshal String and create reply
 		marshaled = "rebind||" + port + "|" + className + "||"+ name;

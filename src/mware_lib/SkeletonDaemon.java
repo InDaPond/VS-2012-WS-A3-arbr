@@ -7,8 +7,6 @@ import java.lang.reflect.Method;
 import java.net.Socket;
 import java.util.concurrent.ConcurrentHashMap;
 
-import cash_access.OverdraftException;
-
 /**
  * @author Benjamin Trapp Christoph Gr�bke
  */
@@ -162,8 +160,6 @@ public class SkeletonDaemon implements Runnable {
 					if(e instanceof InvocationTargetException)
 					{
 						if(e.getCause() instanceof RuntimeException)
-							exceptiontype = e.getCause().getClass().toString();
-						else if(e.getCause() instanceof OverdraftException)
 							exceptiontype = e.getCause().getClass().toString();
 						else
 							exceptiontype = e.getCause().getClass().toString();
