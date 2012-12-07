@@ -56,19 +56,12 @@ public class NameServiceImp extends NameService
 		String marshaled = null;
 		String[] reply = null;
 		
-//		if (servant instanceof Manager) {
-//			logInfo("[Rebind] Servant is a Manager");
-//			className = ManagerImpl.class.getCanonicalName();
-//		} else if (servant instanceof Account) {
-//			logInfo("[Rebind] Servant is an Account");
-//			className = AccountImpl.class.getCanonicalName();
-//		} else {
-//			logError("Servant is invalid for this NameService. Class: "+servant.toString());
-//			throw new RuntimeException("The passed Object "
-//					+ servant.toString() + "is invalid for this NameService");
-//		}
-//		
-		className = servant.getClass().getCanonicalName();
+		className = Object.class.getCanonicalName();
+		Class<?> klass = servant.getClass();
+		while (klass.getSuperclass() != null) {
+			className = klass.getCanonicalName();
+			klass = klass.getSuperclass();
+		}
 		
 		//Marshal String and create reply
 		marshaled = "rebind||" + port + "|" + className + "||"+ name;
