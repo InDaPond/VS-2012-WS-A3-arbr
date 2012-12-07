@@ -108,7 +108,8 @@ public class NameServiceImp extends NameService
 		logInfo("[Resolve] successful. className: "+className+" Port: "+port+" Host: "+hostAdress);
 		paramList.add(hostAdress);
 		paramList.add(port);
-		
+		paramList.add(reply[4]);
+
 		if(DEBUG == true)
 		{
 			System.out.println("=================================");
