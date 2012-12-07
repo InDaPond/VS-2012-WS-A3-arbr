@@ -120,18 +120,15 @@ public class NameServiceImp extends NameService
 		}
 		
 		try {
-			for (Constructor<?> constructor : Class.forName(className).getConstructors()) 
-				classParam = constructor.getParameterTypes();
-
-			if (classParam.length > 2) 
-				paramList.add(reply[4]);
-
-			Arrays.toString(classParam);
+			// Find class for className (should be Middleware related)
+			Class<?> klass = Class.forName(className+"Impl");
 			
-			return Class.forName(className).getConstructor(classParam).newInstance(paramList.toArray());
+			// Find Constructor: String host, String port, String bankName
+			Class<?>[] parameterTypes = { String.class, String.class, String.class }; 
+			Constructor<?> constructor = klass.getDeclaredConstructor(parameterTypes);
 			
-		} catch (Exception e) 
-		{
+			return constructor.newInstance(paramList.toArray());	
+		} catch (Exception e) {
 			e.printStackTrace();
 			//System.out.println("ERROR @ NameServiceImp: Can't create Proxy");
 			logError("NameServiceImp: Can't create Proxy");
